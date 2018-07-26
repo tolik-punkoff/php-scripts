@@ -4,10 +4,7 @@
 	ini_set('display_startup_errors', 1);
 	
 	header('Content-type: text/plain; charset=utf8');
-	
-	//регулярное выражение для IP
-	$ip_pattern="#(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)#";
-
+		
 	$spec_list = array(										
 					array ("0.0.0.0","0.255.255.255", "Current network"),
 					array ("255.255.255.255","255.255.255.255", "Broadcast"),
@@ -32,16 +29,34 @@
 					array ("240.0.0.0","240.255.255.255", "Future reserved")					
 					);
 
-	function isip($ip_str) //соответствие данных формату IP
-	{	
-		global $ip_pattern;
-		$ret=FALSE;
-		if (preg_match($ip_pattern,$ip_str)) 
-		{
-			$ret=TRUE;
-		}
-		return $ret;
+	function IsIP($ip)
+	{
+		//преобразуем в нижний регистр, на случай шестнадцатиричных чисел
+		$ip=strtoupper($ip);
+		//ip2long в некоторых версиях php 
+		//некорректно реагирует на адрес 255.255.255.255
+		//делаем небольшую заглушку
+		if ($ip == '255.255.255.255'||$ip == '0xff.0xff.0xff.0xff'||
+		   $ip == '0377.0377.0377.0377')
+		   {
+			   return true;
+		   }
+		
+		$tolong=ip2long($ip);
+		
+		if ($tolong == -1||$tolong===FALSE) return FALSE;
+		else return TRUE;
+		
 	}
+	
+	function fulladdr($ip)
+	{
+		//преобразует неполные адреса в полные
+		//для информации
+		$tolong=ip2long($ip);
+		return long2ip ($tolong);
+	}
+	
 	function chkdiapip ($user_ip, $ip_from, $ip_to) //попадает ли ip в нужный диапазон
 	{
 		return ( ip2long($user_ip)>=ip2long($ip_from) && ip2long($user_ip)<=ip2long($ip_to) );
@@ -80,6 +95,11 @@
 			die();
 		}
 		$retspec = get_spec_diap ($ip, $spec_list);
+		$fa = fulladdr($ip);
+		if ($ip!=$fa)
+		{
+			$ip = $fa." [".$ip."]";
+		}
 		if ($retspec == -1)
 		{
 			echo "IP ".$ip." not in special diapason.";
