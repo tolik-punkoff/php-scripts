@@ -8,3 +8,5 @@ specdiap.php - The script checks if the address is in a special-use addresses di
 isip.php - validate IPv4 address with function ip2long()
 
 isip2.php - validate IPv4 address with fouction filter_var()
+
+countries - script generate full list countries width ISO-codes and flags. List may be sorted.
